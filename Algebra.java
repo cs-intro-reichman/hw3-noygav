@@ -26,39 +26,71 @@ public class Algebra {
 	// Returns x1 + x2
 	public static int plus(int x1, int x2) 
 	{
-		for(int i = 0; i<x2; i++)
-		{
-			x1++;
+		if (x2 >= 0) {
+			for (int i = 0; i < x2; i++) {
+				x1++;
+			}
+			return x1;
+		} else {
+			// x2 is negative: add |x2| by decrementing x1
+			int cnt = 0;
+			int tmp = x2;
+			while (tmp < 0) {
+				cnt++;
+				tmp++;
+			}
+			for (int i = 0; i < cnt; i++) x1--;
+			return x1;
 		}
-		return x1;
 	}
 
 	// Returns x1 - x2
 	public static int minus(int x1, int x2)
 	{
-		for(int i = 0; i<x2; i++)
-		{
-			x1--;
+		if (x2 >= 0) {
+			for (int i = 0; i < x2; i++) {
+				x1--;
+			}
+			return x1;
+		} else {
+			// subtracting a negative -> add
+			int cnt = 0;
+			int tmp = x2;
+			while (tmp < 0) {
+				cnt++;
+				tmp++;
+			}
+			for (int i = 0; i < cnt; i++) x1++;
+			return x1;
 		}
-		return x1;
 	}
 
 	// Returns x1 * x2
 	public static int times(int x1, int x2)
 	 {
+		// Handle signs
+		boolean negative = false;
+		if (x1 < 0) {
+			x1 = negate(x1);
+			negative = !negative;
+		}
+		if (x2 < 0) {
+			x2 = negate(x2);
+			negative = !negative;
+		}
 		int result = 0;
-		for(int i = 0; i<x2; i++)
-		{
+		for (int i = 0; i < x2; i++) {
 			result = plus(result, x1);
 		}
+		if (negative) result = negate(result);
 		return result;
 	}
 	// Returns x^n (for n >= 0)
 	public static int pow(int x, int n) 
 	{
-		int result = x;
-		for(int i = 1; i<n; i++)
-		{
+		if (n == 0) return 1;
+		int result = 1;
+		for (int i = 0; i < n; i++) {
 			result = times(result, x);
 		}
 		return result;
@@ -67,36 +99,60 @@ public class Algebra {
 	// Returns the integer part of x1 / x2 
 	public static int div(int x1, int x2)
 	 {
-        int result = 0;
-		while (x1>=x2)
-		 {
-       		result++;		
+		// Handle sign and use absolute values
+		if (x2 == 0) throw new ArithmeticException("Division by zero");
+		boolean negative = false;
+		if (x1 < 0) { x1 = negate(x1); negative = !negative; }
+		if (x2 < 0) { x2 = negate(x2); negative = !negative; }
+		int result = 0;
+		while (x1 >= x2) {
 			x1 = minus(x1, x2);
+			result = plus(result, 1);
 		}
-		return result;	}
+		if (negative) result = negate(result);
+		return result;
+	}
 
 	// Returns x1 % x2
 	public static int mod(int x1, int x2) 
 	{
-		 return minus(x1,times(div(x1, x2), x2) );
+		if (x2 == 0) throw new ArithmeticException("Division by zero");
+		// Use absolute values to compute remainder, then apply sign of dividend
+		boolean negativeDividend = false;
+		if (x1 < 0) { x1 = negate(x1); negativeDividend = true; }
+		if (x2 < 0) x2 = negate(x2);
+		while (x1 >= x2) {
+			x1 = minus(x1, x2);
+		}
+		// x1 now holds the remainder (non-negative). Apply sign of original dividend
+		if (negativeDividend) return negate(x1);
+		return x1;
 	}	
 
 	// Returns the integer part of sqrt(x) 
 	public static int sqrt(int x)
 	 {
-		int sqr =-1;
-		int res;
-		do
-		{
-			res = times(sqr, sqr);
-			sqr++;
+		if (x < 0) return -1;
+		int s = 0;
+		// Increment s while (s+1)^2 <= x
+		while (true) {
+			int sp1 = plus(s, 1);
+			int sq = times(sp1, sp1);
+			if (sq <= x) {
+				s = sp1;
+			} else break;
 		}
-		while(res < x);
-
-		if (res ==x)
-		{
-			return sqr;
-		}
-		return -1;
+		return s;
 	}	  	  
+
+	// Helper: negate x (i.e., return -x) using only ++/-- and comparisons
+	public static int negate(int x) {
+		int res = 0;
+		if (x > 0) {
+			for (int i = 0; i < x; i++) res--;
+		} else {
+			while (x < 0) { res++; x++; }
+		}
+		return res;
+	}
 }
